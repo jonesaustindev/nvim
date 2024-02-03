@@ -137,6 +137,10 @@ require('lazy').setup({
       },
       on_attach = function(bufnr)
         vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
+        vim.keymap.set('n', '<leader>hb',
+          function() require('gitsigns').blame_line { full = true, desc = 'Git blame line' } end)
+        vim.keymap.set('n', '<leader>hd', require('gitsigns').diffthis)
+        vim.keymap.set('n', '<leader>hD', function() require('gitsigns').diffthis('~') end)
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
