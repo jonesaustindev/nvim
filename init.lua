@@ -44,6 +44,10 @@ P.S. You can delete this when you're done too. It's your config now :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -353,6 +357,35 @@ require('lazy').setup({
           end,
         }
       })
+    end,
+  },
+
+  {
+    "nvim-tree/nvim-tree.lua",
+    version = "*",
+    lazy = false,
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
+    config = function()
+      require("nvim-tree").setup {
+        view = {
+          width = 35,
+        },
+        git = {
+          ignore = false
+        },
+        update_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_cwd = true,
+          ignore_list = {},
+        },
+      }
+      local map = vim.api.nvim_set_keymap
+      local opts = { noremap = true, silent = true }
+
+      map('n', '<leader>t', ':NvimTreeToggle<CR>', opts)
     end,
   }
 
@@ -1007,10 +1040,10 @@ nvim_lsp.lua_ls.setup {
   },
 }
 
-nvim_lsp.tailwindcss.setup {
-  on_attach = on_attach,
-  capabilities = lsp_capabilities
-}
+-- nvim_lsp.tailwindcss.setup {
+--   on_attach = on_attach,
+--   capabilities = lsp_capabilities
+-- }
 
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, {
