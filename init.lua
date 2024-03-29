@@ -236,7 +236,7 @@ require('lazy').setup({
         keywordStyle = { italic = true },
         statementStyle = { bold = true },
         typeStyle = {},
-        transparent = false,   -- do not set background color
+        transparent = true,    -- do not set background color
         dimInactive = false,   -- dim inactive window `:h hl-NormalNC`
         terminalColors = true, -- define vim.g.terminal_color_{0,17}
         colors = {             -- add/modify theme and palette colors
@@ -371,6 +371,7 @@ require('lazy').setup({
       require("nvim-tree").setup {
         view = {
           width = 35,
+          side = "right",
         },
         git = {
           ignore = false
@@ -387,7 +388,27 @@ require('lazy').setup({
 
       map('n', '<leader>t', ':NvimTreeToggle<CR>', opts)
     end,
-  }
+  },
+
+  {
+    "NeogitOrg/neogit",
+    dependencies = {
+      "nvim-lua/plenary.nvim",  -- required
+      "sindrets/diffview.nvim", -- optional - Diff integration
+
+      -- Only one of these is needed, not both.
+      "nvim-telescope/telescope.nvim", -- optional
+      "ibhagwan/fzf-lua",              -- optional
+    },
+    config = true
+  },
+
+  {
+    'akinsho/toggleterm.nvim',
+    version = "*",
+    config = true,
+    open_mapping = [[<c-\>]],
+  },
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -557,6 +578,9 @@ local function live_grep_git_root()
   end
 end
 
+-- Neogit
+vim.keymap.set("n", "<leader>ng", ":Neogit<CR>", { noremap = true, silent = true })
+
 vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 
 -- See `:help telescope.builtin`
@@ -588,7 +612,7 @@ vim.keymap.set('n', '<leader>su', require('telescope.builtin').git_status, { des
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'odin', 'zig' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -847,6 +871,18 @@ require("conform").setup({
 -- },
 --vim.lsp.set_log_level("debug")
 
+-- toggle term
+function _G.set_terminal_keymaps()
+  local opts = { buffer = 0 }
+  vim.keymap.set('t', '<esc>', [[<C-\><C-n>]], opts)
+  vim.keymap.set('t', 'jk', [[<C-\><C-n>]], opts)
+  vim.keymap.set('t', '<C-h>', [[<Cmd>wincmd h<CR>]], opts)
+  vim.keymap.set('t', '<C-j>', [[<Cmd>wincmd j<CR>]], opts)
+  vim.keymap.set('t', '<C-k>', [[<Cmd>wincmd k<CR>]], opts)
+  vim.keymap.set('t', '<C-l>', [[<Cmd>wincmd l<CR>]], opts)
+  vim.keymap.set('t', '<C-w>', [[<C-\><C-n><C-w>]], opts)
+end
+
 local status, nvim_lsp = pcall(require, "lspconfig")
 if (not status) then return end
 
@@ -1017,6 +1053,14 @@ nvim_lsp.rust_analyzer.setup {
   on_attach = on_attach,
   capabilities = lsp_capabilities,
 }
+
+nvim_lsp.ols.setup({
+  on_attach = on_attach,
+  capabilities = lsp_capabilities,
+  filetypes = { "odin" },
+  cmd = { "ols" },
+  root_dir = nvim_lsp.util.root_pattern("ols.json", ".git", "*.odin")
+})
 
 nvim_lsp.lua_ls.setup {
   capabilities = lsp_capabilities,
