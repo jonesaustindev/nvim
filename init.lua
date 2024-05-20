@@ -223,6 +223,7 @@ require('lazy').setup({
   --     vim.cmd.colorscheme 'catppuccin'
   --   end,
   -- },
+
   -- -- Default options:
   {
     "rebelot/kanagawa.nvim",
@@ -410,6 +411,49 @@ require('lazy').setup({
     open_mapping = [[<c-\>]],
   },
 
+  -- {
+  --   'mfussenegger/nvim-dap',
+  --   config = function ()
+  --     require("nvim-dap").setup {
+  --       mappings = {
+  --
+  --       }
+  --     }
+  --   end
+  -- },
+  --
+  -- {
+  --   'jay-babu/mason-nvim-dap.nvim',
+  --   dependencies = {
+  --     'williamboman/mason.nvim',
+  --     'mfussenegger/nvim-dap'
+  --   },
+  --   opts = {
+  --     handlers = {},
+  --   },
+  --   event = "VeryLazy"
+  -- },
+  --
+  -- {
+  --   'rcarriga/nvim-dap-ui',
+  --   event = "VeryLazy",
+  --   dependencies = { "mfussenegger/nvim-dap" },
+  --   config = function()
+  --     local dap = require("dap")
+  --     local dapui = require("dapui")
+  --     dapui.setup()
+  --     dap.listeners.after.event_initialized["dapui_config"] = function()
+  --       dapui.open()
+  --     end
+  --     dap.listeners.before.event_initialized["dapui_config"] = function()
+  --       dapui.close()
+  --     end
+  --     dap.listeners.before.event_exited["dapui_config"] = function()
+  --       dapui.close()
+  --     end
+  --   end
+  -- },
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -515,6 +559,9 @@ vim.keymap.set('n', '<leader>cd', [[:let @+ = expand('%')<CR>]])
 -- Keep visual mode when indenting
 vim.keymap.set('v', '<', '<gv')
 vim.keymap.set('v', '>', '>gv')
+
+-- vim.keymap.set('n', '<leader>db', '<cmd> DapToggleBreakpoint <CR>', { desc = 'Add breakpoint at line' })
+-- vim.keymap.set('n', '<leader>dr', '<cmd> DapContinue <CR>', { desc = 'Start or continue the debugger' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -1083,6 +1130,13 @@ nvim_lsp.lua_ls.setup {
     },
   },
 }
+
+-- Godot
+nvim_lsp.gdscript.setup {}
+local pipepath = vim.fn.stdpath("cache") .. "/server.pipe"
+if not vim.loop.fs_stat(pipepath) then
+  vim.fn.serverstart(pipepath)
+end
 
 -- nvim_lsp.tailwindcss.setup {
 --   on_attach = on_attach,
