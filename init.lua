@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -154,8 +154,15 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = true
 
+-- Relative line numbers
+vim.opt.relativenumber = true
+
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
+
+-- disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -166,6 +173,56 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+-- Keymaps for better default experience
+-- See `:help vim.keymap.set()`
+vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
+
+-- Remap for dealing with word wrap
+vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+
+-- Diagnostic keymaps
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+-- More
+vim.keymap.set('i', 'jk', '<Esc>', {})
+
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
+
+vim.keymap.set('n', 'J', 'mzJ`z')
+vim.keymap.set('n', '<C-d>', '<C-d>zz')
+vim.keymap.set('n', '<C-u>', '<C-u>zz')
+vim.keymap.set('n', 'n', 'nzzzv')
+vim.keymap.set('n', 'N', 'Nzzzv')
+
+-- Copy
+vim.keymap.set({ 'n', 'v' }, '<leader>y', [["+y]])
+vim.keymap.set('n', '<leader>Y', [["+Y]])
+vim.keymap.set('n', 'YY', 'va{Vy')
+
+-- Format
+vim.keymap.set('n', '<leader>f', vim.lsp.buf.format)
+
+-- Clear search
+vim.keymap.set('n', '<Space>h', ':noh<cr>')
+
+-- LSP remaps
+vim.keymap.set('n', 'ca', vim.lsp.buf.code_action)
+
+-- Get current relative directory with file name
+vim.keymap.set('n', '<leader>cd', [[:let @+ = expand('%')<CR>]])
+
+-- Keep visual mode when indenting
+vim.keymap.set('v', '<', '<gv')
+vim.keymap.set('v', '>', '>gv')
+
+-- Neogit: ensured it is installed
+vim.keymap.set('n', '<leader>ng', ':Neogit<CR>', { noremap = true, silent = true })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -321,6 +378,110 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+      },
+    },
+  },
+
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('nvim-tree').setup {
+        view = {
+          width = 50,
+          side = 'left',
+        },
+        git = {
+          ignore = false,
+        },
+        update_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_cwd = true,
+          ignore_list = {},
+        },
+      }
+      local map = vim.api.nvim_set_keymap
+      local opts = { noremap = true, silent = true }
+
+      map('n', '<leader>t', ':NvimTreeToggle<CR>', opts)
+    end,
+  },
+
+  {
+    'ThePrimeagen/harpoon',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    config = function()
+      vim.keymap.set('n', '<leader>ho', require('harpoon.ui').toggle_quick_menu)
+      vim.keymap.set('n', '<leader>ha', require('harpoon.mark').add_file)
+    end,
+  },
+
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    opts = {}, -- this is equalent to setup({}) function
+  },
+
+  {
+    'NeogitOrg/neogit',
+    dependencies = {
+      'nvim-lua/plenary.nvim', -- required
+      'sindrets/diffview.nvim', -- optional - Diff integration
+      'nvim-telescope/telescope.nvim',
+    },
+    config = true,
+  },
+
+  {
+    'yetone/avante.nvim',
+    event = 'VeryLazy',
+    lazy = false,
+    version = false, -- set this if you want to always pull the latest change
+    opts = {
+      -- add any opts here
+    },
+    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+    build = 'make',
+    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'stevearc/dressing.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below dependencies are optional,
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
       },
     },
   },
@@ -685,7 +846,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = false, cpp = true }
         local lsp_format_opt
         if disable_filetypes[vim.bo[bufnr].filetype] then
           lsp_format_opt = 'never'
@@ -824,23 +985,135 @@ require('lazy').setup({
     end,
   },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+  {
+    'sainnhe/gruvbox-material',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      -- Define the paths to save the background and contrast settings
+      local cache_dir = vim.fn.stdpath 'cache'
+      local bg_file = cache_dir .. '/background_setting.txt'
+      local contrast_file = cache_dir .. '/contrast_setting.txt'
 
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
+      -- Function to read the background setting from the file
+      local function read_background_setting()
+        local f = io.open(bg_file, 'r')
+        if f then
+          local bg = f:read '*l'
+          f:close()
+          if bg == 'light' or bg == 'dark' then
+            return bg
+          end
+        end
+        return 'dark' -- default if file not found or invalid value
+      end
+
+      -- Function to save the background setting to the file
+      local function save_background_setting(bg)
+        local f = io.open(bg_file, 'w')
+        if f then
+          f:write(bg)
+          f:close()
+        else
+          vim.notify('Error: Could not write background setting to file', vim.log.levels.ERROR)
+        end
+      end
+
+      -- Function to read the contrast setting from the file
+      local function read_contrast_setting()
+        local f = io.open(contrast_file, 'r')
+        if f then
+          local contrast = f:read '*l'
+          f:close()
+          if contrast == 'hard' or contrast == 'medium' or contrast == 'soft' then
+            return contrast
+          end
+        end
+        return 'hard' -- default contrast if file not found or invalid value
+      end
+
+      -- Function to save the contrast setting to the file
+      local function save_contrast_setting(contrast)
+        local f = io.open(contrast_file, 'w')
+        if f then
+          f:write(contrast)
+          f:close()
+        else
+          vim.notify('Error: Could not write contrast setting to file', vim.log.levels.ERROR)
+        end
+      end
+
+      -- Set the background from the saved setting
+      vim.o.background = read_background_setting()
+
+      -- Set your gruvbox-material options
+      vim.g.gruvbox_material_enable_italic = true
+      vim.g.gruvbox_material_background = read_contrast_setting()
+
+      -- Load the colorscheme
+      vim.cmd.colorscheme 'gruvbox-material'
+
+      -- Function to find the index of a value in a table
+      local function index_of(tbl, val)
+        for i, v in ipairs(tbl) do
+          if v == val then
+            return i
+          end
+        end
+        return nil
+      end
+
+      -- Define a function to toggle between 'light' and 'dark' backgrounds
+      function ToggleBackground()
+        if vim.o.background == 'dark' then
+          vim.o.background = 'light'
+        else
+          vim.o.background = 'dark'
+        end
+        -- Save the new background setting
+        save_background_setting(vim.o.background)
+        -- Reload the colorscheme to apply the background change
+        vim.cmd.colorscheme 'gruvbox-material'
+      end
+
+      -- Define a function to toggle between 'hard', 'medium', and 'soft' contrasts
+      function ToggleContrast()
+        local contrasts = { 'hard', 'medium', 'soft' }
+        local current_contrast = vim.g.gruvbox_material_background
+        local idx = index_of(contrasts, current_contrast) or 1
+        local next_idx = (idx % #contrasts) + 1
+        local new_contrast = contrasts[next_idx]
+        vim.g.gruvbox_material_background = new_contrast
+        -- Save the new contrast setting
+        save_contrast_setting(new_contrast)
+        -- Reload the colorscheme to apply the contrast change
+        vim.cmd.colorscheme 'gruvbox-material'
+        print('Contrast set to ' .. new_contrast)
+      end
+
+      -- Set up keymaps to toggle the background and contrast
+      vim.keymap.set('n', '<leader>bg', ToggleBackground, { desc = 'Toggle background' })
+      vim.keymap.set('n', '<leader>bc', ToggleContrast, { desc = 'Toggle contrast' })
     end,
   },
+
+  -- { -- You can easily change to a different colorscheme.
+  --   -- Change the name of the colorscheme plugin below, and then
+  --   -- change the command in the config to whatever the name of that colorscheme is.
+  --   --
+  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   init = function()
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     vim.cmd.colorscheme 'tokyonight-night'
+  --
+  --     -- You can configure highlights by doing something like:
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
