@@ -393,9 +393,6 @@ require('lazy').setup({
       require('nvim-tree').setup {
         view = {
           adaptive_size = true,
-          float = {
-            enable = true,
-          },
         },
         git = {
           ignore = false,
