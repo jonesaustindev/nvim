@@ -1,0 +1,1 @@
+/nix/store/kcgf2m44xr8ssjmc9m6j0l2nyvd7z7dv-home-manager-files/.config/nvim/queries/proto/highlights.scm
