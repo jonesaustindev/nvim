@@ -128,6 +128,13 @@ vim.opt.undofile = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+
+vim.opt.smartindent = true
+
 -- Keep signcolumn on by default
 vim.opt.signcolumn = 'yes'
 
@@ -224,6 +231,13 @@ vim.keymap.set('v', '>', '>gv')
 -- Neogit: ensured it is installed
 vim.keymap.set('n', '<leader>ng', ':Neogit<CR>', { noremap = true, silent = true })
 
+-- Toggle Zen Mode
+vim.keymap.set('n', '<leader>z', ':ZenMode<CR>', { noremap = true, silent = true })
+
+-- Quickfixlist
+vim.keymap.set('n', "<leader>l'", '<cmd>cnext<CR>zz', { desc = 'Forward qfixlist' })
+vim.keymap.set('n', '<leader>l,', '<cmd>cprev<CR>zz', { desc = 'Backward qfixlist' })
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -247,6 +261,14 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- CodeCompanion
+vim.keymap.set({ 'n', 'v' }, '<leader>aa', '<cmd>CodeCompanionActions<cr>', { noremap = true, silent = true })
+vim.keymap.set({ 'n', 'v' }, '<leader>at', '<cmd>CodeCompanionChat Toggle<cr>', { noremap = true, silent = true })
+vim.keymap.set('v', 'ga', '<cmd>CodeCompanionChat Add<cr>', { noremap = true, silent = true })
+
+-- Expand 'cc' into 'CodeCompanion' in the command line
+vim.cmd [[cab cc CodeCompanion]]
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -260,6 +282,8 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+vim.g.gruvbox_material_transparent_background = true
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -377,7 +401,7 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        -- { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
   },
@@ -439,51 +463,75 @@ require('lazy').setup({
   },
 
   {
-    'yetone/avante.nvim',
-    event = 'VeryLazy',
-    lazy = false,
-    version = false, -- set this if you want to always pull the latest change
-    opts = {
-      -- add any opts here
+    'S1M0N38/love2d.nvim',
+    cmd = 'LoveRun',
+    opts = {},
+    keys = {
+      { '<leader>l', ft = 'lua', desc = 'LÖVE' },
+      { '<leader>lr', '<cmd>LoveRun<cr>', ft = 'lua', desc = 'Run LÖVE' },
+      { '<leader>ls', '<cmd>LoveStop<cr>', ft = 'lua', desc = 'Stop LÖVE' },
     },
-    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-    build = 'make',
-    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter',
-      'stevearc/dressing.nvim',
-      'nvim-lua/plenary.nvim',
-      'MunifTanjim/nui.nvim',
-      --- The below dependencies are optional,
-      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-      'zbirenbaum/copilot.lua', -- for providers='copilot'
-      {
-        -- support for image pasting
-        'HakonHarnes/img-clip.nvim',
-        event = 'VeryLazy',
-        opts = {
-          -- recommended settings
-          default = {
-            embed_image_as_base64 = false,
-            prompt_for_file_name = false,
-            drag_and_drop = {
-              insert_mode = true,
-            },
-            -- required for Windows users
-            use_absolute_path = true,
-          },
-        },
-      },
-      {
-        -- Make sure to set this up properly if you have lazy=true
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { 'markdown', 'Avante' },
-        },
-        ft = { 'markdown', 'Avante' },
+  },
+
+  {
+    'folke/zen-mode.nvim',
+    opts = {
+      window = {
+        width = 0.5,
       },
     },
   },
+
+  {
+    'github/copilot.vim',
+  },
+
+  -- {
+  --   'yetone/avante.nvim',
+  --   event = 'VeryLazy',
+  --   lazy = false,
+  --   version = false, -- set this if you want to always pull the latest change
+  --   opts = {
+  --     -- add any opts here
+  --   },
+  --   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+  --   build = 'make',
+  --   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+  --   dependencies = {
+  --     'nvim-treesitter/nvim-treesitter',
+  --     'stevearc/dressing.nvim',
+  --     'nvim-lua/plenary.nvim',
+  --     'MunifTanjim/nui.nvim',
+  --     --- The below dependencies are optional,
+  --     'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+  --     'zbirenbaum/copilot.lua', -- for providers='copilot'
+  --     {
+  --       -- support for image pasting
+  --       'HakonHarnes/img-clip.nvim',
+  --       event = 'VeryLazy',
+  --       opts = {
+  --         -- recommended settings
+  --         default = {
+  --           embed_image_as_base64 = false,
+  --           prompt_for_file_name = false,
+  --           drag_and_drop = {
+  --             insert_mode = true,
+  --           },
+  --           -- required for Windows users
+  --           use_absolute_path = true,
+  --         },
+  --       },
+  --     },
+  --     {
+  --       -- Make sure to set this up properly if you have lazy=true
+  --       'MeanderingProgrammer/render-markdown.nvim',
+  --       opts = {
+  --         file_types = { 'markdown', 'Avante' },
+  --       },
+  --       ft = { 'markdown', 'Avante' },
+  --     },
+  --   },
+  -- },
 
   -- NOTE: Plugins can specify dependencies.
   --
@@ -616,8 +664,7 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-      'williamboman/mason-lspconfig.nvim',
+      { 'mason-org/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
@@ -775,8 +822,22 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
+        ts_ls = {},
+
+        -- Elixir Language Server
+        elixirls = {
+          cmd = { vim.fn.expand("~/.local/share/nvim/mason/packages/elixir-ls/language_server.sh") },
+          filetypes = { 'elixir', 'eelixir', 'heex', 'surface' },
+          capabilities = capabilities,
+          settings = {
+            elixirLS = {
+              dialyzerEnabled = true,
+              fetchDeps = false, -- Set to true if you want to automatically fetch dependencies
+              enableTestLenses = true,
+              suggestSpecs = true,
+            },
+          },
+        },
 
         lua_ls = {
           -- cmd = {...},
@@ -786,6 +847,13 @@ require('lazy').setup({
             Lua = {
               completion = {
                 callSnippet = 'Replace',
+              },
+              format = {
+                enable = true,
+                defaultConfig = {
+                  indent_style = 'space',
+                  indent_size = '2',
+                },
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
               -- diagnostics = { disable = { 'missing-fields' } },
@@ -804,24 +872,20 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
+      local ensure_installed = {
+        'lua-language-server', -- Note: Mason package name is different from lspconfig name
+        'typescript-language-server', -- For TypeScript/JavaScript support
         'stylua', -- Used to format Lua code
-      })
+        'elixir-ls', -- Elixir Language Server
+      }
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
+      -- Setup each server manually without mason-lspconfig
+      for server_name, server_config in pairs(servers) do
+        local server = server_config or {}
+        server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+        require('lspconfig')[server_name].setup(server)
+      end
     end,
   },
 
@@ -859,8 +923,12 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        javascript = { 'prettierd' },
-        typescript = { 'prettierd' },
+        javascript = { 'eslint_d', 'prettierd' },
+        typescript = { 'eslint_d', 'prettierd' },
+        javascriptreact = { 'eslint_d', 'prettierd' },
+        typescriptreact = { 'eslint_d', 'prettierd' },
+        elixir = { 'mix_format' },
+        exs = { 'mix_format' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -973,7 +1041,7 @@ require('lazy').setup({
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
         sources = {
-          { name = 'supermaven' },
+          -- { name = 'supermaven' },
           {
             name = 'lazydev',
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
@@ -982,6 +1050,10 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'copilot' },
+          per_filetype = {
+            codecompanion = { 'codecompanion' },
+          },
         },
       }
     end,
@@ -1099,21 +1171,11 @@ require('lazy').setup({
     end,
   },
 
-  -- { -- You can easily change to a different colorscheme.
-  --   -- Change the name of the colorscheme plugin below, and then
-  --   -- change the command in the config to whatever the name of that colorscheme is.
-  --   --
-  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  -- {
   --   'folke/tokyonight.nvim',
-  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   priority = 1000,
   --   init = function()
-  --     -- Load the colorscheme here.
-  --     -- Like many other themes, this one has different styles, and you could load
-  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  --     vim.cmd.colorscheme 'tokyonight-night'
-  --
-  --     -- You can configure highlights by doing something like:
-  --     vim.cmd.hi 'Comment gui=none'
+  --     vim.cmd.colorscheme 'tokyonight-storm'
   --   end,
   -- },
 
@@ -1183,11 +1245,141 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
+  -- AI stuff
+  -- {
+  --   'supermaven-inc/supermaven-nvim',
+  --   config = function()
+  --     require('supermaven-nvim').setup {}
+  --   end,
+  -- },
+
   {
-    'supermaven-inc/supermaven-nvim',
+    'olimorris/codecompanion.nvim',
+    opts = {},
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+  },
+
+  {
+    'OXY2DEV/markview.nvim',
+    lazy = false,
+    opts = {
+      preview = {
+        filetypes = { 'markdown', 'codecompanion' },
+        ignore_buftypes = {},
+      },
+    },
+  },
+
+  {
+    'echasnovski/mini.diff',
     config = function()
-      require('supermaven-nvim').setup {}
+      local diff = require 'mini.diff'
+      diff.setup {
+        -- Disabled by default
+        source = diff.gen_source.none(),
+      }
     end,
+  },
+
+  {
+    'HakonHarnes/img-clip.nvim',
+    opts = {
+      filetypes = {
+        codecompanion = {
+          prompt_for_file_name = false,
+          template = '[Image]($FILE_PATH)',
+          use_absolute_path = true,
+        },
+      },
+    },
+  },
+
+  {
+    'folke/noice.nvim',
+    event = 'VeryLazy',
+    opts = {
+      lsp = {
+        -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+        override = {
+          ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
+          ['vim.lsp.util.stylize_markdown'] = true,
+          ['cmp.entry.get_documentation'] = true, -- requires hrsh7th/nvim-cmp
+        },
+      },
+      -- you can enable a preset for easier configuration
+      presets = {
+        bottom_search = false, -- use a classic bottom cmdline for search
+        command_palette = true, -- position the cmdline and popupmenu together
+        long_message_to_split = true, -- long messages will be sent to a split
+        inc_rename = false, -- enables an input dialog for inc-rename.nvim
+        lsp_doc_border = false, -- add a border to hover docs and signature help
+      },
+      views = {
+        cmdline_popup = {
+          backend = 'popup',
+          relative = 'editor',
+          zindex = 200,
+          -- position = {
+          --   row = '40%', -- 40% from top of the screen. This will position it almost at the center.
+          --   col = '50%',
+          -- },
+          size = {
+            width = 120,
+            height = 'auto',
+          },
+          win_options = {
+            winhighlight = {
+              Normal = 'NoiceCmdlinePopup',
+              FloatTitle = 'NoiceCmdlinePopupTitle',
+              FloatBorder = 'NoiceCmdlinePopupBorder',
+              IncSearch = '',
+              CurSearch = '',
+              Search = '',
+            },
+            winbar = '',
+            foldenable = false,
+            cursorline = false,
+          },
+        },
+        popupmenu = {
+          relative = 'cursor',
+          -- position = {
+          --   row = 'auto', -- Popup will show up below the cmdline automatically
+          --   col = 'auto',
+          -- },
+          size = {
+            width = 120, -- Making this as wide as the cmdline_popup
+            height = 'auto',
+          },
+          border = {
+            style = 'double', -- 'double'"|"'none'"|"'rounded'"|"'shadow'"|"'single'"|"'solid'
+            padding = { 0, 1 },
+          },
+          win_options = {
+            winhighlight = {
+              Normal = 'NoicePopupmenu', -- Normal | NoicePopupmenu
+              FloatBorder = 'NoicePopupmenuBorder', -- DiagnosticInfo | NoicePopupmenuBorder
+              CursorLine = 'NoicePopupmenuSelected',
+              PmenuMatch = 'NoicePopupmenuMatch',
+            },
+          },
+        },
+      },
+      cmdline = {
+        view = 'cmdline_popup',
+      },
+    },
+    dependencies = {
+      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+      'MunifTanjim/nui.nvim',
+      -- OPTIONAL:
+      --   `nvim-notify` is only needed, if you want to use the notification view.
+      --   If not available, we use `mini` as the fallback
+      'rcarriga/nvim-notify',
+    },
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
