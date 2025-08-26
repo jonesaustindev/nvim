@@ -1,89 +1,3 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-========                                    .-----.          ========
-========         .----------------------.   | === |          ========
-========         |.-""""""""""""""""""-.|   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||   KICKSTART.NVIM   ||   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||                    ||   |-----|          ========
-========         ||:Tutor              ||   |:::::|          ========
-========         |'-..................-'|   |____o|          ========
-========         `"")----------------(""`   ___________      ========
-========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==hjkl==:::\  \ required \    ========
-========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
-========                                                     ========
-=====================================================================
-=====================================================================
-
-What is Kickstart?
-
-  Kickstart.nvim is *not* a distribution.
-
-  Kickstart.nvim is a starting point for your own configuration.
-    The goal is that you can read every line of code, top-to-bottom, understand
-    what your configuration is doing, and modify it to suit your needs.
-
-    Once you've done that, you can start exploring, configuring and tinkering to
-    make Neovim your own! That might mean leaving Kickstart just the way it is for a while
-    or immediately breaking it into modular pieces. It's up to you!
-
-    If you don't know anything about Lua, I recommend taking some time to read through
-    a guide. One possible example which will only take 10-15 minutes:
-      - https://learnxinyminutes.com/docs/lua/
-
-    After understanding a bit more about Lua, you can use `:help lua-guide` as a
-    reference for how Neovim integrates Lua.
-    - :help lua-guide
-    - (or HTML version): https://neovim.io/doc/user/lua-guide.html
-
-Kickstart Guide:
-
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
-
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know the Neovim basics, you can skip this step.)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua.
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not exactly sure of what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or Neovim features used in Kickstart.
-
-   NOTE: Look for lines like this
-
-    Throughout the file. These are for you, the reader, to help you understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
-    for when you are first encountering a few different constructs in your Neovim config.
-
-If you experience any errors while trying to install kickstart, run `:checkhealth` for more info.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now! :)
---]]
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -482,57 +396,6 @@ require('lazy').setup({
     },
   },
 
-  {
-    'github/copilot.vim',
-  },
-
-  -- {
-  --   'yetone/avante.nvim',
-  --   event = 'VeryLazy',
-  --   lazy = false,
-  --   version = false, -- set this if you want to always pull the latest change
-  --   opts = {
-  --     -- add any opts here
-  --   },
-  --   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-  --   build = 'make',
-  --   -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-  --   dependencies = {
-  --     'nvim-treesitter/nvim-treesitter',
-  --     'stevearc/dressing.nvim',
-  --     'nvim-lua/plenary.nvim',
-  --     'MunifTanjim/nui.nvim',
-  --     --- The below dependencies are optional,
-  --     'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-  --     'zbirenbaum/copilot.lua', -- for providers='copilot'
-  --     {
-  --       -- support for image pasting
-  --       'HakonHarnes/img-clip.nvim',
-  --       event = 'VeryLazy',
-  --       opts = {
-  --         -- recommended settings
-  --         default = {
-  --           embed_image_as_base64 = false,
-  --           prompt_for_file_name = false,
-  --           drag_and_drop = {
-  --             insert_mode = true,
-  --           },
-  --           -- required for Windows users
-  --           use_absolute_path = true,
-  --         },
-  --       },
-  --     },
-  --     {
-  --       -- Make sure to set this up properly if you have lazy=true
-  --       'MeanderingProgrammer/render-markdown.nvim',
-  --       opts = {
-  --         file_types = { 'markdown', 'Avante' },
-  --       },
-  --       ft = { 'markdown', 'Avante' },
-  --     },
-  --   },
-  -- },
-
   -- NOTE: Plugins can specify dependencies.
   --
   -- The dependencies are proper plugin specifications as well - anything
@@ -642,6 +505,9 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      -- Git changes (modified and new files)
+      vim.keymap.set('n', '<leader>gc', builtin.git_status, { desc = '[G]it [C]hanges' })
     end,
   },
 
@@ -815,7 +681,7 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
-        -- rust_analyzer = {},
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -823,21 +689,6 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         ts_ls = {},
-
-        -- Elixir Language Server
-        elixirls = {
-          cmd = { vim.fn.expand("~/.local/share/nvim/mason/packages/elixir-ls/language_server.sh") },
-          filetypes = { 'elixir', 'eelixir', 'heex', 'surface' },
-          capabilities = capabilities,
-          settings = {
-            elixirLS = {
-              dialyzerEnabled = true,
-              fetchDeps = false, -- Set to true if you want to automatically fetch dependencies
-              enableTestLenses = true,
-              suggestSpecs = true,
-            },
-          },
-        },
 
         lua_ls = {
           -- cmd = {...},
@@ -860,6 +711,8 @@ require('lazy').setup({
             },
           },
         },
+
+        ols = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -876,7 +729,7 @@ require('lazy').setup({
         'lua-language-server', -- Note: Mason package name is different from lspconfig name
         'typescript-language-server', -- For TypeScript/JavaScript support
         'stylua', -- Used to format Lua code
-        'elixir-ls', -- Elixir Language Server
+        'ols', -- Odin Language Server
       }
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -921,6 +774,13 @@ require('lazy').setup({
           lsp_format = lsp_format_opt,
         }
       end,
+      formatters = {
+        odinfmt = {
+          command = 'odinfmt',
+          args = { '-stdin' },
+          stdin = true,
+        },
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
         javascript = { 'eslint_d', 'prettierd' },
@@ -929,6 +789,7 @@ require('lazy').setup({
         typescriptreact = { 'eslint_d', 'prettierd' },
         elixir = { 'mix_format' },
         exs = { 'mix_format' },
+        odinfmt = { 'odinfmt' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1050,10 +911,6 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
-          { name = 'copilot' },
-          per_filetype = {
-            codecompanion = { 'codecompanion' },
-          },
         },
       }
     end,
@@ -1245,23 +1102,6 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
-  -- AI stuff
-  -- {
-  --   'supermaven-inc/supermaven-nvim',
-  --   config = function()
-  --     require('supermaven-nvim').setup {}
-  --   end,
-  -- },
-
-  {
-    'olimorris/codecompanion.nvim',
-    opts = {},
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'nvim-treesitter/nvim-treesitter',
-    },
-  },
-
   {
     'OXY2DEV/markview.nvim',
     lazy = false,
@@ -1294,91 +1134,6 @@ require('lazy').setup({
           use_absolute_path = true,
         },
       },
-    },
-  },
-
-  {
-    'folke/noice.nvim',
-    event = 'VeryLazy',
-    opts = {
-      lsp = {
-        -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-        override = {
-          ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
-          ['vim.lsp.util.stylize_markdown'] = true,
-          ['cmp.entry.get_documentation'] = true, -- requires hrsh7th/nvim-cmp
-        },
-      },
-      -- you can enable a preset for easier configuration
-      presets = {
-        bottom_search = false, -- use a classic bottom cmdline for search
-        command_palette = true, -- position the cmdline and popupmenu together
-        long_message_to_split = true, -- long messages will be sent to a split
-        inc_rename = false, -- enables an input dialog for inc-rename.nvim
-        lsp_doc_border = false, -- add a border to hover docs and signature help
-      },
-      views = {
-        cmdline_popup = {
-          backend = 'popup',
-          relative = 'editor',
-          zindex = 200,
-          -- position = {
-          --   row = '40%', -- 40% from top of the screen. This will position it almost at the center.
-          --   col = '50%',
-          -- },
-          size = {
-            width = 120,
-            height = 'auto',
-          },
-          win_options = {
-            winhighlight = {
-              Normal = 'NoiceCmdlinePopup',
-              FloatTitle = 'NoiceCmdlinePopupTitle',
-              FloatBorder = 'NoiceCmdlinePopupBorder',
-              IncSearch = '',
-              CurSearch = '',
-              Search = '',
-            },
-            winbar = '',
-            foldenable = false,
-            cursorline = false,
-          },
-        },
-        popupmenu = {
-          relative = 'cursor',
-          -- position = {
-          --   row = 'auto', -- Popup will show up below the cmdline automatically
-          --   col = 'auto',
-          -- },
-          size = {
-            width = 120, -- Making this as wide as the cmdline_popup
-            height = 'auto',
-          },
-          border = {
-            style = 'double', -- 'double'"|"'none'"|"'rounded'"|"'shadow'"|"'single'"|"'solid'
-            padding = { 0, 1 },
-          },
-          win_options = {
-            winhighlight = {
-              Normal = 'NoicePopupmenu', -- Normal | NoicePopupmenu
-              FloatBorder = 'NoicePopupmenuBorder', -- DiagnosticInfo | NoicePopupmenuBorder
-              CursorLine = 'NoicePopupmenuSelected',
-              PmenuMatch = 'NoicePopupmenuMatch',
-            },
-          },
-        },
-      },
-      cmdline = {
-        view = 'cmdline_popup',
-      },
-    },
-    dependencies = {
-      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-      'MunifTanjim/nui.nvim',
-      -- OPTIONAL:
-      --   `nvim-notify` is only needed, if you want to use the notification view.
-      --   If not available, we use `mini` as the fallback
-      'rcarriga/nvim-notify',
     },
   },
 
