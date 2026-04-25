@@ -24,11 +24,19 @@ vim.opt.timeoutlen = 300
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = '  ', trail = '·', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 10
+
+-- pico-8 filetype detection
+vim.filetype.add {
+  extension = {
+    p8 = 'pico8',
+  },
+}
+vim.treesitter.language.register('lua', 'pico8')
 
 -- disable netrw (using nvim-tree)
 vim.g.loaded_netrw = 1
@@ -83,7 +91,7 @@ vim.keymap.set('n', '<leader>z', ':ZenMode<CR>', { noremap = true, silent = true
 
 -- quickfix navigation
 vim.keymap.set('n', "<leaderql'", '<cmd>cnext<CR>zz', { desc = 'Forward qfixlist' })
-vim.keymap.set('n', '<leader>l,', '<cmd>cprev<CR>zz', { desc = 'Backward qfixlist' })
+-- vim.keymap.set('n', '<leader>l,', '<cmd>cprev<CR>zz', { desc = 'Backward qfixlist' })
 
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
@@ -102,7 +110,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
-vim.g.gruvbox_material_transparent_background = false
+-- vim.g.gruvbox_material_transparent_background = false
 
 -- bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -268,6 +276,7 @@ require('lazy').setup({
     opts = {
       library = {
         { path = 'luvit-meta/library', words = { 'vim%.uv' } },
+        { path = 'love2d.nvim/love2d/library', words = { 'love' } },
       },
     },
   },
@@ -277,12 +286,35 @@ require('lazy').setup({
   {
     'neovim/nvim-lspconfig',
     dependencies = {
-      { 'mason-org/mason.nvim', config = true },
+      {
+        'mason-org/mason.nvim',
+        opts = {
+          registries = {
+            'github:mason-org/mason-registry',
+            'github:Crashdummyy/mason-registry',
+          },
+        },
+      },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
       { 'j-hui/fidget.nvim', opts = {} },
       'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
+      -- register pico8-ls (not in lspconfig's built-in server list)
+      local configs = require 'lspconfig.configs'
+      if not configs.pico8_ls then
+        configs.pico8_ls = {
+          default_config = {
+            cmd = { 'pico8-ls', '--stdio' },
+            filetypes = { 'pico8', 'p8' },
+            root_dir = function(fname)
+              return vim.fs.dirname(fname)
+            end,
+            settings = {},
+          },
+        }
+      end
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
@@ -356,15 +388,24 @@ require('lazy').setup({
           },
         },
         ols = {},
+        pico8_ls = {},
       }
 
-      require('mason').setup()
+      require('mason').setup {
+        registries = {
+          'github:mason-org/mason-registry',
+          'github:Crashdummyy/mason-registry',
+        },
+      }
       require('mason-tool-installer').setup {
         ensure_installed = {
           'lua-language-server',
           'typescript-language-server',
           'stylua',
           'ols',
+          'roslyn',
+          'netcoredbg',
+          'local-lua-debugger-vscode',
         },
       }
 
@@ -374,6 +415,51 @@ require('lazy').setup({
         require('lspconfig')[server_name].setup(server)
       end
     end,
+  },
+
+  {
+    'seblyng/roslyn.nvim',
+    ft = 'cs',
+    opts = {
+      broad_search = true,
+    },
+    config = function(_, opts)
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+
+      vim.lsp.config('roslyn', {
+        capabilities = capabilities,
+        settings = {
+          ['csharp|inlay_hints'] = {
+            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+            csharp_enable_inlay_hints_for_types = true,
+            dotnet_enable_inlay_hints_for_parameters = true,
+          },
+          ['csharp|completion'] = {
+            dotnet_show_completion_items_from_unimported_namespaces = true,
+            dotnet_show_name_completion_suggestions = true,
+          },
+          ['csharp|code_lens'] = {
+            dotnet_enable_references_code_lens = true,
+          },
+        },
+      })
+
+      require('roslyn').setup(opts)
+    end,
+  },
+
+  -- using lazy.nvim
+  {
+    'S1M0N38/love2d.nvim',
+    event = 'VeryLazy',
+    version = '2.*',
+    opts = {},
+    keys = {
+      { '<leader>l', ft = 'lua', desc = 'LÖVE' },
+      { '<leader>lr', '<cmd>LoveRun<cr>', ft = 'lua', desc = 'Run LÖVE' },
+      { '<leader>ls', '<cmd>LoveStop<cr>', ft = 'lua', desc = 'Stop LÖVE' },
+    },
   },
 
   {
@@ -588,24 +674,24 @@ require('lazy').setup({
 
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
-  {
-    'echasnovski/mini.nvim',
-    config = function()
-      require('mini.surround').setup()
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
-    end,
-  },
+  -- {
+  --   'echasnovski/mini.nvim',
+  --   config = function()
+  --     require('mini.surround').setup()
+  --     local statusline = require 'mini.statusline'
+  --     statusline.setup { use_icons = vim.g.have_nerd_font }
+  --     statusline.section_location = function()
+  --       return '%2l:%-2v'
+  --     end
+  --   end,
+  -- },
 
   {
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'c_sharp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
       auto_install = true,
       highlight = {
         enable = true,
@@ -651,14 +737,177 @@ require('lazy').setup({
 
       dap.configurations.odin = {
         {
-          name = 'Launch',
+          name = 'Odin: Debug (build + launch)',
           type = 'codelldb',
           request = 'launch',
           program = function()
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+            -- build first
+            vim.notify('Building Odin (debug)...', vim.log.levels.INFO)
+            local out = vim.fn.system { 'sh', '-lc', './scripts/build_debug.sh' }
+            if vim.v.shell_error ~= 0 then
+              vim.notify(out, vim.log.levels.ERROR)
+              error 'Odin debug build failed'
+            end
+            -- then debug-launch the binary (NOT the script)
+            return vim.fn.getcwd() .. '/bin/debug/game'
           end,
           cwd = '${workspaceFolder}',
           stopOnEntry = false,
+          args = {}, -- add args here if needed
+        },
+
+        {
+          name = 'Odin: Release (build + launch)',
+          type = 'codelldb',
+          request = 'launch',
+          program = function()
+            vim.notify('Building Odin (release)...', vim.log.levels.INFO)
+            local out = vim.fn.system { 'sh', '-lc', './scripts/build_release.sh' }
+            if vim.v.shell_error ~= 0 then
+              vim.notify(out, vim.log.levels.ERROR)
+              error 'Odin release build failed'
+            end
+            return vim.fn.getcwd() .. '/bin/release/fae'
+          end,
+          cwd = '${workspaceFolder}',
+          stopOnEntry = false,
+          args = {},
+        },
+      }
+
+      local lldebugger_path = vim.fn.stdpath 'data' .. '/mason/packages/local-lua-debugger-vscode'
+
+      dap.adapters['lua-local'] = {
+        type = 'executable',
+        command = 'node',
+        args = { lldebugger_path .. '/extension/extension/debugAdapter.js' },
+        enrich_config = function(config, on_config)
+          config = vim.deepcopy(config)
+          if not config.extensionPath then
+            config.extensionPath = lldebugger_path .. '/extension/extension/'
+          end
+          on_config(config)
+        end,
+      }
+
+      dap.configurations.lua = {
+        {
+          name = 'LÖVE: Debug',
+          type = 'lua-local',
+          request = 'launch',
+          program = { command = '/Applications/love.app/Contents/MacOS/love' },
+          args = { '.', 'debug' },
+        },
+        {
+          name = 'LÖVE: Release',
+          type = 'lua-local',
+          request = 'launch',
+          program = { command = '/Applications/love.app/Contents/MacOS/love' },
+          args = { '.' },
+        },
+      }
+
+      dap.adapters.coreclr = {
+        type = 'executable',
+        command = vim.fn.stdpath 'data' .. '/mason/bin/netcoredbg',
+        args = { '--interpreter=vscode' },
+      }
+
+      -- Shared state for the selected .NET project so program/cwd stay in sync
+      local _dotnet_dll = nil
+      local _dotnet_cwd = nil
+
+      local function resolve_dotnet_project()
+        local cwd = vim.fn.getcwd()
+        local handle = io.popen('find "' .. cwd .. '" -name "*.csproj" -not -path "*/obj/*" 2>/dev/null')
+        if not handle then
+          return nil
+        end
+        local result = handle:read '*a'
+        handle:close()
+
+        local projects = {}
+        for line in result:gmatch '[^\n]+' do
+          local f = io.open(line, 'r')
+          if f then
+            local content = f:read '*a'
+            f:close()
+            -- Must have WinExe/Exe output AND reference a MonoGame or Microsoft.NET.Sdk framework
+            -- (filters out content pipeline tools and class libraries)
+            if
+              (content:match '<OutputType>WinExe</OutputType>' or content:match '<OutputType>Exe</OutputType>')
+              and not content:match 'MonoGame%.Framework%.Content%.Pipeline'
+            then
+              table.insert(projects, line)
+            end
+          end
+        end
+
+        if #projects == 0 then
+          return nil
+        end
+
+        local selected
+        if #projects == 1 then
+          selected = projects[1]
+        else
+          local choices = {}
+          for i, p in ipairs(projects) do
+            choices[i] = p:gsub(cwd .. '/', '')
+          end
+          local idx = vim.fn.inputlist(vim.list_extend(
+            { 'Select project:' },
+            vim.tbl_map(function(c)
+              return (' %d. %s'):format(vim.fn.index(choices, c) + 1, c)
+            end, choices)
+          ))
+          if idx < 1 or idx > #projects then
+            return nil
+          end
+          selected = projects[idx]
+        end
+
+        local f = io.open(selected, 'r')
+        if not f then
+          return nil
+        end
+        local content = f:read '*a'
+        f:close()
+
+        local tfm = content:match '<TargetFramework>(.-)</TargetFramework>'
+        local asm_name = content:match '<AssemblyName>(.-)</AssemblyName>'
+        if not asm_name then
+          asm_name = vim.fn.fnamemodify(selected, ':t:r')
+        end
+
+        local proj_dir = vim.fn.fnamemodify(selected, ':h')
+        local out_dir = proj_dir .. '/bin/Debug/' .. (tfm or 'net9.0')
+        local dll_path = out_dir .. '/' .. asm_name .. '.dll'
+
+        -- Always rebuild to pick up latest changes
+        vim.notify('Building ' .. vim.fn.fnamemodify(selected, ':t') .. '...', vim.log.levels.INFO)
+        vim.fn.system('dotnet build "' .. selected .. '" -c Debug')
+
+        _dotnet_dll = dll_path
+        _dotnet_cwd = out_dir
+        return dll_path
+      end
+
+      dap.configurations.cs = {
+        {
+          name = 'Launch .NET Project',
+          type = 'coreclr',
+          request = 'launch',
+          program = function()
+            local dll = resolve_dotnet_project()
+            if not dll then
+              return vim.fn.input('Path to DLL: ', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+            end
+            return dll
+          end,
+          cwd = function()
+            return _dotnet_cwd or vim.fn.getcwd()
+          end,
         },
       }
 
