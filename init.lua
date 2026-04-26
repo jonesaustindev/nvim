@@ -30,14 +30,6 @@ vim.opt.cursorline = true
 vim.opt.relativenumber = true
 vim.opt.scrolloff = 10
 
--- pico-8 filetype detection
-vim.filetype.add {
-  extension = {
-    p8 = 'pico8',
-  },
-}
-vim.treesitter.language.register('lua', 'pico8')
-
 -- disable netrw (using nvim-tree)
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -110,7 +102,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- vim.g.gruvbox_material_transparent_background = false
+vim.g.gruvbox_material_transparent_background = true
 
 -- bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -301,19 +293,19 @@ require('lazy').setup({
     },
     config = function()
       -- register pico8-ls (not in lspconfig's built-in server list)
-      local configs = require 'lspconfig.configs'
-      if not configs.pico8_ls then
-        configs.pico8_ls = {
-          default_config = {
-            cmd = { 'pico8-ls', '--stdio' },
-            filetypes = { 'pico8', 'p8' },
-            root_dir = function(fname)
-              return vim.fs.dirname(fname)
-            end,
-            settings = {},
-          },
-        }
-      end
+      -- local configs = require 'lspconfig.configs'
+      -- if not configs.pico8_ls then
+      --   configs.pico8_ls = {
+      --     default_config = {
+      --       cmd = { 'pico8-ls', '--stdio' },
+      --       filetypes = { 'pico8', 'p8' },
+      --       root_dir = function(fname)
+      --         return vim.fs.dirname(fname)
+      --       end,
+      --       settings = {},
+      --     },
+      --   }
+      -- end
 
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
@@ -370,8 +362,7 @@ require('lazy').setup({
         gopls = {},
         zls = {},
         rust_analyzer = {},
-        ts_ls = {},
-        intelephense = {},
+        tsserver = {},
         clangd = {},
         lua_ls = {
           settings = {
@@ -401,18 +392,28 @@ require('lazy').setup({
         ensure_installed = {
           'lua-language-server',
           'typescript-language-server',
+          'gopls',
+          'rust-analyzer',
+          'clangd',
           'stylua',
           'ols',
           'roslyn',
-          'netcoredbg',
-          'local-lua-debugger-vscode',
         },
       }
 
+      -- for server_name, server_config in pairs(servers) do
+      --   local server = server_config or {}
+      --   server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+      --   require('lspconfig')[server_name].setup(server)
+      -- end
+
       for server_name, server_config in pairs(servers) do
         local server = server_config or {}
+
         server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-        require('lspconfig')[server_name].setup(server)
+
+        vim.lsp.config(server_name, server)
+        vim.lsp.enable(server_name)
       end
     end,
   },
@@ -450,17 +451,17 @@ require('lazy').setup({
   },
 
   -- using lazy.nvim
-  {
-    'S1M0N38/love2d.nvim',
-    event = 'VeryLazy',
-    version = '2.*',
-    opts = {},
-    keys = {
-      { '<leader>l', ft = 'lua', desc = 'LÖVE' },
-      { '<leader>lr', '<cmd>LoveRun<cr>', ft = 'lua', desc = 'Run LÖVE' },
-      { '<leader>ls', '<cmd>LoveStop<cr>', ft = 'lua', desc = 'Stop LÖVE' },
-    },
-  },
+  -- {
+  --   'S1M0N38/love2d.nvim',
+  --   event = 'VeryLazy',
+  --   version = '2.*',
+  --   opts = {},
+  --   keys = {
+  --     { '<leader>l', ft = 'lua', desc = 'LÖVE' },
+  --     { '<leader>lr', '<cmd>LoveRun<cr>', ft = 'lua', desc = 'Run LÖVE' },
+  --     { '<leader>ls', '<cmd>LoveStop<cr>', ft = 'lua', desc = 'Stop LÖVE' },
+  --   },
+  -- },
 
   {
     'stevearc/conform.nvim',
@@ -687,18 +688,20 @@ require('lazy').setup({
   -- },
 
   {
-    'nvim-treesitter/nvim-treesitter',
-    build = ':TSUpdate',
-    main = 'nvim-treesitter.configs',
-    opts = {
-      ensure_installed = { 'bash', 'c', 'c_sharp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      auto_install = true,
-      highlight = {
-        enable = true,
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
+    'romus204/tree-sitter-manager.nvim',
+    dependencies = {}, -- tree-sitter CLI must be installed system-wide
+    config = function()
+      require('tree-sitter-manager').setup {
+        -- Default Options
+        -- ensure_installed = {}, -- list of parsers to install at the start of a neovim session
+        -- border = nil, -- border style for the window (e.g. "rounded", "single"), if nil, use the default border style defined by 'vim.o.winborder'. See :h 'winborder' for more info.
+        -- auto_install = false, -- if enabled, install missing parsers when editing a new file
+        -- highlight = true, -- treesitter highlighting is enabled by default
+        -- languages = {}, -- override or add new parser sources
+        -- parser_dir = vim.fn.stdpath("data") .. "/site/parser",
+        -- query_dir = vim.fn.stdpath("data") .. "/site/queries",
+      }
+    end,
   },
 
   {
